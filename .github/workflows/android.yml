@@ -8,10 +8,13 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
 
-      - name: Organize Folders
+      - name: Create Package JSON and Folders
         run: |
           mkdir -p www
-          # Esse comando pega QUALQUER arquivo html que você subiu e transforma no index.html correto!
+          # Cria o arquivo de configuração que o Capacitor exige
+          echo '{"name": "eraperdida", "version": "1.0.0", "dependencies": {"@capacitor/core": "^6.0.0", "@capacitor/android": "^6.0.0"}}' > package.json
+          
+          # Move o seu arquivo de jogo (com qualquer nome) para a pasta certa
           mv *.html www/index.html || true
           if [ -f index.html ]; then mv index.html www/; fi
 
@@ -22,11 +25,10 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-          npx cap init "Era Perdida" "com.seujogo.eraperdida" --web-dir=www
+          npm install
+          npm install @capacitor/cli@6
+          npx cap init "Era Perdida" "com.seujogo.eraperdida" --web-dir=www --confirm
           npx cap add android
-          npx cap sync
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -36,6 +38,7 @@ jobs:
 
       - name: Build APK with Gradle
         run: |
+          npx cap sync
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
